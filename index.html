@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NutriSnap</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1DB446">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="lock-screen" class="screen">
+    <div class="lock-container">
+      <h2>🔒 請輸入 PIN 碼</h2>
+      <input type="password" id="pin-input" pattern="\d*" inputmode="numeric" placeholder="••••">
+      <button id="unlock-btn">解鎖</button>
+      <p id="lock-error" class="error-msg"></p>
+    </div>
+  </div>
+
+  <div id="app-screen" class="screen hidden">
+    <header>
+      <h1>🥗 NutriSnap</h1>
+    </header>
+    
+    <main class="app-container">
+      <form id="diet-form">
+        
+        <div class="form-group row">
+          <div class="col">
+            <label for="record-date">選擇日期</label>
+            <input type="date" id="record-date" required>
+          </div>
+          <div class="col">
+            <label for="record-meal">當前餐次</label>
+            <select id="record-meal" required>
+              <option value="早餐">早餐</option>
+              <option value="午餐">午餐</option>
+              <option value="點心">點心</option>
+              <option value="晚餐">晚餐</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>食物相片 (可直接拍照)</label>
+          <div class="upload-area" id="upload-zone">
+            <input type="file" id="file-input" accept="image/*" capture="environment" class="hidden">
+            <div id="upload-prompt">
+              <span class="icon">📷</span>
+              <p>點擊開啟相機或上傳相片</p>
+            </div>
+            <img id="preview-img" class="hidden" alt="預覽圖">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="user-text">補充說明 (選填)</label>
+          <textarea id="user-text" placeholder="例如：飯剩下一半、多加了一顆蛋、今天有教練課..." rows="3"></textarea>
+        </div>
+
+        <button type="submit" id="submit-btn">傳送 AI 辨識</button>
+        <div id="status-message" class="status-box hidden"></div>
+        
+      </form>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
