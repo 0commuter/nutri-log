@@ -131,7 +131,8 @@ header h1 {
 }
 
 .form-group .col {
-  flex: 1;
+  flex: 1
+  min-width: 0; /* 💥 加上這行：強制通知手機瀏覽器允許縮小，徹底解決欄位擠壓重疊的問題 */;
 }
 
 label {
