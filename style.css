@@ -247,3 +247,47 @@ input[type="date"]:focus, select:focus, textarea:focus {
 .status-box.success { background-color: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
 .status-box.error { background-color: #fff1f0; border: 1px solid #ffa39e; color: #ff4d4f; }
 .error-msg { color: var(--error-color); font-size: 0.85rem; margin-top: 8px; }
+
+#result-container {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.result-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #4CAF50;
+}
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+.detail-table th, .detail-table td {
+  border-bottom: 1px solid #eee;
+  padding: 10px 5px;
+  text-align: left;
+}
+.detail-table th {
+  color: #666;
+  font-weight: normal;
+}
+.detail-table tr.total-row {
+  font-weight: bold;
+  color: #333;
+}
+.review-box {
+  background-color: #f0fdf4;
+  border-left: 4px solid #4CAF50;
+  padding: 12px 15px;
+  border-radius: 0 8px 8px 0;
+  color: #2e7d32;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
