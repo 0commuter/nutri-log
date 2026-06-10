@@ -291,3 +291,9 @@ input[type="date"]:focus, select:focus, textarea:focus {
   line-height: 1.6;
   font-size: 0.95rem;
 }
+.goal-row td {
+  background-color: #e8f5e9;
+  color: #388e3c;
+  font-weight: bold;
+  font-style: italic;
+}
