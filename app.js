@@ -226,3 +226,28 @@ dietForm.addEventListener('submit', async (e) => {
 
   resultContainer.innerHTML = htmlContent;
   resultContainer.style.display = 'block';
+document.getElementById('user-text').value = "";
+      currentBase64Image = null;
+      previewImg.classList.add('hidden');
+      previewImg.src = "";
+      uploadPrompt.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = "傳送 AI 辨識";
+
+    } // ← 關閉 if (result.status === "success")
+
+  } catch (error) {
+    showStatus("❌ 網路連線錯誤，請檢查網路狀態。", "error");
+    submitBtn.disabled = false;
+    submitBtn.textContent = "傳送 AI 辨識";
+  }
+}); // ← 關閉 dietForm.addEventListener
+
+function showStatus(msg, type) {
+  statusMessage.textContent = msg;
+  statusMessage.className = `status-box ${type}`;
+  statusMessage.classList.remove('hidden');
+}
+
+// 啟動
+checkLogin();
