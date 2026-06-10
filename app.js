@@ -131,6 +131,8 @@ fileInput.addEventListener('change', (event) => {
 // ==========================================
 // 🚀 4. 表單送出與 API 對接
 // ==========================================
+const resultContainer = document.getElementById('result-container');
+
 dietForm.addEventListener('submit', async (e) => {
   e.preventDefault(); // 防止網頁重新載入
   
@@ -139,9 +141,10 @@ dietForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  // 鎖定按鈕避免重複點擊
+  // 鎖定按鈕避免重複點擊，並先隱藏上一次的結果卡片
   submitBtn.disabled = true;
   submitBtn.textContent = "AI 辨識中，請稍候...";
+  resultContainer.style.display = 'none'; 
   showStatus("正在傳送資料至大腦分析中...", "info");
 
   const payload = {
@@ -165,19 +168,72 @@ dietForm.addEventListener('submit', async (e) => {
     const result = await response.json();
 
     if (result.status === "success") {
-      showStatus("🎉 登錄成功！AI 已完成辨識並寫入資料庫。", "success");
+      showStatus("🎉 登錄成功！資料已寫入試算表。", "success");
       
-      // 成功後清理畫面準備下一次登錄
-      setTimeout(() => {
-        document.getElementById('user-text').value = "";
-        currentBase64Image = null;
-        previewImg.classList.add('hidden');
-        previewImg.src = "";
-        uploadPrompt.classList.remove('hidden');
-        submitBtn.disabled = false;
-        submitBtn.textContent = "傳送 AI 辨識";
-        statusMessage.classList.add('hidden');
-      }, 3000);
+      // ----------------------------------------------------
+      // 🎨 開始動態繪製「明細表格」與「營養師點評」
+      // ----------------------------------------------------
+      let htmlContent = `
+        <div class="result-title">📊 餐點營養明細</div>
+        <table class="detail-table">
+          <thead>
+            <tr>
+              <th>食材</th>
+              <th>熱量(kcal)</th>
+              <th>碳水(g)</th>
+              <th>蛋白質(g)</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      // 依序填入單品明細
+      if (result.details && result.details.length > 0) {
+          result.details.forEach(item => {
+              htmlContent += `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.calories}</td>
+                  <td>${item.carbs}</td>
+                  <td>${item.protein}</td>
+                </tr>
+              `;
+          });
+      }
+
+      // 填入總計數據
+      htmlContent += `
+            <tr class="total-row">
+              <td>總計約</td>
+              <td>${result.totals.calories}</td>
+              <td>${result.totals.carbs}</td>
+              <td>${result.totals.protein}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      // 處理營養師點評 (將 \n 轉換成網頁的 <br> 換行)
+      const formattedReview = (result.review || "無點評內容").replace(/\n/g, '<br>');
+      htmlContent += `
+        <div class="result-title">👩‍⚕️ 營養師點評與建議</div>
+        <div class="review-box">${formattedReview}</div>
+      `;
+
+      // 把畫好的內容塞進盒子裡，並顯示出來
+      resultContainer.innerHTML = htmlContent;
+      resultContainer.style.display = 'block';
+
+      // ----------------------------------------------------
+      // 🧹 清理輸入框準備下一次紀錄 (但不隱藏結果卡片)
+      // ----------------------------------------------------
+      document.getElementById('user-text').value = "";
+      currentBase64Image = null;
+      previewImg.classList.add('hidden');
+      previewImg.src = "";
+      uploadPrompt.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = "傳送 AI 辨識";
 
     } else {
       showStatus("❌ 登錄失敗：" + result.message, "error");
