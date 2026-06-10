@@ -167,91 +167,62 @@ dietForm.addEventListener('submit', async (e) => {
 
     const result = await response.json();
 
-    if (result.status === "success") {
-      showStatus("🎉 登錄成功！資料已寫入試算表。", "success");
-      
-      // ----------------------------------------------------
-      // 🎨 開始動態繪製「明細表格」與「營養師點評」
-      // ----------------------------------------------------
-      let htmlContent = `
-        <div class="result-title">📊 餐點營養明細</div>
-        <table class="detail-table">
-          <thead>
-            <tr>
-              <th>食材</th>
-              <th>熱量(kcal)</th>
-              <th>碳水(g)</th>
-              <th>蛋白質(g)</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
+   if (result.status === "success") {
+  showStatus("🎉 登錄成功！資料已寫入試算表。", "success");
 
-      // 依序填入單品明細
-      if (result.details && result.details.length > 0) {
-          result.details.forEach(item => {
-              htmlContent += `
-                <tr>
-                  <td>${item.name}</td>
-                  <td>${item.calories}</td>
-                  <td>${item.carbs}</td>
-                  <td>${item.protein}</td>
-                </tr>
-              `;
-          });
-      }
+  let htmlContent = `
+    <div class="result-title">📊 餐點營養明細</div>
+    <table class="detail-table">
+      <thead>
+        <tr>
+          <th>食材</th>
+          <th>熱量(kcal)</th>
+          <th>碳水(g)</th>
+          <th>蛋白質(g)</th>
+          <th>纖維(g)</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
 
-      // 填入總計數據
+  if (result.details && result.details.length > 0) {
+    result.details.forEach(item => {
       htmlContent += `
-            <tr class="total-row">
-              <td>總計約</td>
-              <td>${result.totals.calories}</td>
-              <td>${result.totals.carbs}</td>
-              <td>${result.totals.protein}</td>
-            </tr>
-          </tbody>
-        </table>
+        <tr>
+          <td>${item.name ?? '-'}</td>
+          <td>${item.calories ?? '-'}</td>
+          <td>${item.carbs ?? '-'}</td>
+          <td>${item.protein ?? '-'}</td>
+          <td>${item.fiber ?? '-'}</td>
+        </tr>
       `;
-
-      // 處理營養師點評 (將 \n 轉換成網頁的 <br> 換行)
-      const formattedReview = (result.review || "無點評內容").replace(/\n/g, '<br>');
-      htmlContent += `
-        <div class="result-title">👩‍⚕️ 營養師點評與建議</div>
-        <div class="review-box">${formattedReview}</div>
-      `;
-
-      // 把畫好的內容塞進盒子裡，並顯示出來
-      resultContainer.innerHTML = htmlContent;
-      resultContainer.style.display = 'block';
-
-      // ----------------------------------------------------
-      // 🧹 清理輸入框準備下一次紀錄 (但不隱藏結果卡片)
-      // ----------------------------------------------------
-      document.getElementById('user-text').value = "";
-      currentBase64Image = null;
-      previewImg.classList.add('hidden');
-      previewImg.src = "";
-      uploadPrompt.classList.remove('hidden');
-      submitBtn.disabled = false;
-      submitBtn.textContent = "傳送 AI 辨識";
-
-    } else {
-      showStatus("❌ 登錄失敗：" + result.message, "error");
-      submitBtn.disabled = false;
-      submitBtn.textContent = "傳送 AI 辨識";
-    }
-  } catch (error) {
-    showStatus("❌ 網路連線錯誤，請檢查網路狀態。", "error");
-    submitBtn.disabled = false;
-    submitBtn.textContent = "傳送 AI 辨識";
+    });
   }
-});
 
-function showStatus(msg, type) {
-  statusMessage.textContent = msg;
-  statusMessage.className = `status-box ${type}`;
-  statusMessage.classList.remove('hidden');
-}
+  htmlContent += `
+    <tr class="goal-row">
+      <td>📌 今日目標</td>
+      <td>1400</td>
+      <td>130</td>
+      <td>≥74</td>
+      <td>≥25</td>
+    </tr>
+    <tr class="total-row">
+      <td>本餐合計</td>
+      <td>${result.totals.calories ?? '-'}</td>
+      <td>${result.totals.carbs ?? '-'}</td>
+      <td>${result.totals.protein ?? '-'}</td>
+      <td>${result.totals.fiber ?? '-'}</td>
+    </tr>
+      </tbody>
+    </table>
+  `;
 
-// 啟動程式：檢查登錄狀態
-checkLogin();
+  const formattedReview = (result.review || "無點評內容").replace(/\n/g, '<br>');
+  htmlContent += `
+    <div class="result-title">👩‍⚕️ 營養師點評與建議</div>
+    <div class="review-box">${formattedReview}</div>
+  `;
+
+  resultContainer.innerHTML = htmlContent;
+  resultContainer.style.display = 'block';
