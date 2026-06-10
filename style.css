@@ -127,24 +127,34 @@ header h1 {
 
 .form-group.row {
   display: flex;
-  gap: 10px; /* 稍微縮小兩個欄位中間的間距，省下空間 */
+  gap: 10px; /* 縮小間距騰出空間 */
+  align-items: flex-end; /* 確保標籤與輸入框底部對齊 */
 }
 
-/* 針對第一個格子（日期）：給它 1.4 倍的加寬比例 */
+/* 💥 關鍵防禦：強制讓這兩格無論如何都必須乖乖待在 Flex 網格內，不准溢出 */
+.form-group.row .col {
+  min-width: 0; 
+}
+
+/* 針對第一個格子（日期）：給它 1.4 倍的比例 */
 .form-group.row .col:nth-child(1) {
   flex: 1.4; 
 }
 
-/* 針對第二個格子（餐次）：因為字很少，給 1 倍比例即可 */
+/* 針對第二個格子（餐次）：給 1 倍比例 */
 .form-group.row .col:nth-child(2) {
   flex: 1; 
 }
 
-/* 針對這一列裡面的輸入框，稍微把左右的內邊距縮小，免得擠爆手機 */
+/* 💥 第二道防線：強制讓輸入框與下拉選單最大寬度鎖死在 100%，絕對不准超出外層格子 */
 .form-group.row input[type="date"], 
 .form-group.row select {
-  padding: 12px 6px; /* 上下保持12px方便單手按，左右縮小到6px騰出空間 */
-  font-size: 0.95rem; /* 字體稍微調小一丁點 */
+  width: 100%;
+  max-width: 100%;    /* 阻止任何元件往左右爆開 */
+  display: block;     /* 消除瀏覽器內建的行內空白字元干擾 */
+  box-sizing: border-box; /* 確保 padding 寬度算在內部 */
+  padding: 12px 4px;  /* 精簡左右內邊距 */
+  font-size: 0.9rem;  /* 微調字體大小符合手機檢視 */
 }
 
 label {
