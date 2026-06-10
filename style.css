@@ -210,8 +210,10 @@ input[type="date"]:focus, select:focus, textarea:focus {
 
 #preview-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover; /* 相片自動充滿格子且不變形 */
+  height: 200%;
+  border-radius: 8px;
+  object-fit: contain; /* 讓整張照片按比例縮小，完整放進框框裡 */
+  background-color: #f4f6f8; /* 因為照片是直的、框是橫的，兩側會有空白，加個淡灰色底比較好看 */
 }
 
 /* 送出大按鈕 */
