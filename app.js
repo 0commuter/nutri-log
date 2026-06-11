@@ -1,15 +1,10 @@
 // app.js (前端核心邏輯)
 
 // ==========================================
-// ⚙️ 系統設定區 (請填寫你專屬的資料)
+// ⚙️ 系統設定區
 // ==========================================
-// 1. 你的自訂 PIN 碼 (請自己設定一組好記的數字，例如 2026)
 const MY_PIN = "9111"; 
-
-// 2. 你的後端防護密鑰 (必須跟 Config.gs 裡面的 SECRET_TOKEN 一模一樣)
 const SECRET_TOKEN = "MyDietLog@2026"; 
-
-// 3. 你的 GAS 網頁應用程式網址 (請填寫你剛才部署後複製下來的網址)
 const GAS_URL = "https://script.google.com/macros/s/AKfycbyDIc4H75NQ-anigZUQD9reN8Ef2xJrvg72I_879vryr_GH84l86dIXuqUuY_kxshuV/exec"; 
 // ==========================================
 
@@ -64,14 +59,12 @@ unlockBtn.addEventListener('click', () => {
 // 📅 2. 自動帶入日期與餐次
 // ==========================================
 function initForm() {
-  // 自動填入今天日期
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   recordDate.value = `${year}-${month}-${day}`;
 
-  // 自動判斷當前餐次
   const hour = today.getHours();
   if (hour >= 5 && hour < 10) {
     recordMeal.value = "早餐";
@@ -99,7 +92,6 @@ fileInput.addEventListener('change', (event) => {
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      // Canvas 壓縮技術 (將寬度限制在 800px 以內)
       const canvas = document.createElement('canvas');
       const MAX_WIDTH = 800;
       let width = img.width;
@@ -115,10 +107,8 @@ fileInput.addEventListener('change', (event) => {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
-      // 壓縮品質設定為 0.7，轉成 Base64
       currentBase64Image = canvas.toDataURL('image/jpeg', 0.7);
       
-      // 顯示預覽圖
       previewImg.src = currentBase64Image;
       previewImg.classList.remove('hidden');
       uploadPrompt.classList.add('hidden');
@@ -134,14 +124,13 @@ fileInput.addEventListener('change', (event) => {
 const resultContainer = document.getElementById('result-container');
 
 dietForm.addEventListener('submit', async (e) => {
-  e.preventDefault(); // 防止網頁重新載入
+  e.preventDefault(); 
   
   if (!currentBase64Image) {
     showStatus("請先拍照或上傳一張食物相片！", "error");
     return;
   }
 
-  // 鎖定按鈕避免重複點擊，並先隱藏上一次的結果卡片
   submitBtn.disabled = true;
   submitBtn.textContent = "AI 辨識中，請稍候...";
   resultContainer.style.display = 'none'; 
@@ -160,73 +149,112 @@ dietForm.addEventListener('submit', async (e) => {
     const response = await fetch(GAS_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "text/plain;charset=utf-8" // 避免 CORS 預檢問題
+        "Content-Type": "text/plain;charset=utf-8"
       },
       body: JSON.stringify(payload)
     });
 
     const result = await response.json();
 
-   if (result.status === "success") {
-  showStatus("🎉 登錄成功！資料已寫入試算表。", "success");
-
-  let htmlContent = `
-    <div class="result-title">📊 餐點營養明細</div>
-    <table class="detail-table">
-      <thead>
-        <tr>
-          <th>食材</th>
-          <th>熱量(kcal)</th>
-          <th>碳水(g)</th>
-          <th>蛋白質(g)</th>
-          <th>纖維(g)</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  if (result.details && result.details.length > 0) {
-    result.details.forEach(item => {
-      htmlContent += `
-        <tr>
-          <td>${item.name ?? '-'}</td>
-          <td>${item.calories ?? '-'}</td>
-          <td>${item.carbs ?? '-'}</td>
-          <td>${item.protein ?? '-'}</td>
-          <td>${item.fiber ?? '-'}</td>
-        </tr>
-      `;
-    });
-  }
-
-  htmlContent += `
-    <tr class="goal-row">
-      <td>📌 今日目標</td>
-      <td>1400</td>
-      <td>130</td>
-      <td>≥74</td>
-      <td>≥25</td>
-    </tr>
-    <tr class="total-row">
-      <td>本餐合計</td>
-      <td>${result.totals.calories ?? '-'}</td>
-      <td>${result.totals.carbs ?? '-'}</td>
-      <td>${result.totals.protein ?? '-'}</td>
-      <td>${result.totals.fiber ?? '-'}</td>
-    </tr>
-      </tbody>
-    </table>
-  `;
-
-// 🎨 強大的 Markdown 解析器：把 ### 變大標題、** 變粗體、\n 變換行
-      let formattedReview = result.review || "無點評內容";
+    if (result.status === "success") {
+      showStatus("🎉 登錄成功！資料已寫入試算表。", "success");
       
+      // ----------------------------------------------------
+      // 🎨 開始動態繪製「雙層表格」與「營養師點評」
+      // ----------------------------------------------------
+      
+      // 🥇 第一張表：今日營養總覽 (本餐 / 累計 / 剩餘)
+      let htmlContent = `
+        <div class="result-title">🎯 今日營養總覽</div>
+        <div class="table-responsive">
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>指標</th>
+                <th>本餐新增</th>
+                <th>今日累計</th>
+                <th>剩餘額度</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>熱量<br>(kcal)</td>
+                <td>+${result.totals.calories}</td>
+                <td><strong>${result.cumulative.calories}</strong></td>
+                <td style="color: ${result.remaining.calories < 0 ? 'red' : 'green'}; font-weight: bold;">${result.remaining.calories}</td>
+              </tr>
+              <tr>
+                <td>蛋白質<br>(g)</td>
+                <td>+${result.totals.protein}</td>
+                <td><strong>${result.cumulative.protein}</strong></td>
+                <td style="color: ${result.remaining.protein < 0 ? 'red' : 'green'}; font-weight: bold;">${result.remaining.protein}</td>
+              </tr>
+              <tr>
+                <td>碳水<br>(g)</td>
+                <td>+${result.totals.carbs}</td>
+                <td><strong>${result.cumulative.carbs}</strong></td>
+                <td style="color: ${result.remaining.carbs < 0 ? 'red' : 'green'}; font-weight: bold;">${result.remaining.carbs}</td>
+              </tr>
+              <tr>
+                <td>纖維<br>(g)</td>
+                <td>+${result.totals.fiber}</td>
+                <td><strong>${result.cumulative.fiber}</strong></td>
+                <td style="color: ${result.remaining.fiber < 0 ? 'red' : 'green'}; font-weight: bold;">${result.remaining.fiber}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="result-title" style="margin-top: 25px;">🥗 本餐單品明細</div>
+        <div class="table-responsive">
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>食物項目</th>
+                <th>熱量<br>(kcal)</th>
+                <th>蛋白質<br>(g)</th>
+                <th>碳水化合物<br>(g)</th>
+                <th>纖維<br>(g)</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      // 🥈 第二張表：還原截圖的單品明細
+      if (result.details && result.details.length > 0) {
+          result.details.forEach(item => {
+              htmlContent += `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.calories}</td>
+                  <td>${item.protein}</td>
+                  <td>${item.carbs}</td>
+                  <td>${item.fiber || 0}</td>
+                </tr>
+              `;
+          });
+      }
+
+      // 補上總計列，完美對齊
+      htmlContent += `
+              <tr class="total-row">
+                <td>總計</td>
+                <td>約 ${result.totals.calories}</td>
+                <td>約 ${result.totals.protein}</td>
+                <td>約 ${result.totals.carbs}</td>
+                <td>約 ${result.totals.fiber}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      // 🎨 究極 Markdown 解析器
+      let formattedReview = result.review || "無點評內容";
       formattedReview = formattedReview
-        // 把 ### 標題轉換成帶有顏色的 HTML 標籤
         .replace(/### (.*?)(?=\n|$)/g, '<div style="font-size: 1.1rem; font-weight: bold; color: #1a5e20; margin-top: 15px; margin-bottom: 5px;">$1</div>')
-        // 把 **粗體** 轉換成 HTML 的 <strong> 標籤，並加上重點顏色
         .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #d32f2f;">$1</strong>')
-        // 把一般換行轉換成 <br>
+        .replace(/^[\-\*]\s+(.*?)(?=\n|$)/gm, '<div style="margin-left: 15px; text-indent: -10px;">• $1</div>')
         .replace(/\n/g, '<br>');
 
       htmlContent += `
@@ -234,9 +262,14 @@ dietForm.addEventListener('submit', async (e) => {
         <div class="review-box">${formattedReview}</div>
       `;
 
-  resultContainer.innerHTML = htmlContent;
-  resultContainer.style.display = 'block';
-document.getElementById('user-text').value = "";
+      // 把畫好的內容塞進盒子裡，並顯示出來
+      resultContainer.innerHTML = htmlContent;
+      resultContainer.style.display = 'block';
+
+      // ----------------------------------------------------
+      // 🧹 清理輸入框準備下一次紀錄 (保留結果卡片)
+      // ----------------------------------------------------
+      document.getElementById('user-text').value = "";
       currentBase64Image = null;
       previewImg.classList.add('hidden');
       previewImg.src = "";
@@ -244,14 +277,17 @@ document.getElementById('user-text').value = "";
       submitBtn.disabled = false;
       submitBtn.textContent = "傳送 AI 辨識";
 
-    } // ← 關閉 if (result.status === "success")
-
+    } else {
+      showStatus("❌ 登錄失敗：" + result.message, "error");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "傳送 AI 辨識";
+    }
   } catch (error) {
     showStatus("❌ 網路連線錯誤，請檢查網路狀態。", "error");
     submitBtn.disabled = false;
     submitBtn.textContent = "傳送 AI 辨識";
   }
-}); // ← 關閉 dietForm.addEventListener
+});
 
 function showStatus(msg, type) {
   statusMessage.textContent = msg;
@@ -259,5 +295,5 @@ function showStatus(msg, type) {
   statusMessage.classList.remove('hidden');
 }
 
-// 啟動
+// 啟動程式：檢查登錄狀態
 checkLogin();
