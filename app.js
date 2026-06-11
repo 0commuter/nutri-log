@@ -218,11 +218,21 @@ dietForm.addEventListener('submit', async (e) => {
     </table>
   `;
 
-  const formattedReview = (result.review || "無點評內容").replace(/\n/g, '<br>');
-  htmlContent += `
-    <div class="result-title">👩‍⚕️ 營養師點評與建議</div>
-    <div class="review-box">${formattedReview}</div>
-  `;
+// 🎨 強大的 Markdown 解析器：把 ### 變大標題、** 變粗體、\n 變換行
+      let formattedReview = result.review || "無點評內容";
+      
+      formattedReview = formattedReview
+        // 把 ### 標題轉換成帶有顏色的 HTML 標籤
+        .replace(/### (.*?)(?=\n|$)/g, '<div style="font-size: 1.1rem; font-weight: bold; color: #1a5e20; margin-top: 15px; margin-bottom: 5px;">$1</div>')
+        // 把 **粗體** 轉換成 HTML 的 <strong> 標籤，並加上重點顏色
+        .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #d32f2f;">$1</strong>')
+        // 把一般換行轉換成 <br>
+        .replace(/\n/g, '<br>');
+
+      htmlContent += `
+        <div class="result-title" style="margin-top: 25px;">👩‍⚕️ 營養師點評與建議</div>
+        <div class="review-box">${formattedReview}</div>
+      `;
 
   resultContainer.innerHTML = htmlContent;
   resultContainer.style.display = 'block';
